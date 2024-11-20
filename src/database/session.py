@@ -1,23 +1,16 @@
-import os
-
-from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 
-
-load_dotenv()
+from src import settings
 
 
 def get_db_url() -> str:
-    return (
-        f"mysql+aiomysql://{os.getenv('MYSQL_USER')}:{os.getenv('MYSQL_PASSWORD')}"
-        f"@{os.getenv('HOST')}:3306/{os.getenv('MYSQL_DATABASE')}"
-    )
+    return settings.DATABASE_URL
 
 
 engine = create_async_engine(
     get_db_url(),
-    echo=os.getenv("DEBUG") == "True",
+    echo=settings.DEBUG == "True",
     future=True,
 )
 
