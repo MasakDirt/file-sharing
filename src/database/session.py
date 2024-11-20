@@ -17,8 +17,8 @@ def get_db_url() -> str:
 
 engine = create_async_engine(
     get_db_url(),
-    connect_args={"check_some_thread": True},
-    echo=True
+    echo=os.getenv("DEBUG") == "True",
+    future=True,
 )
 
 SessionLocal = sessionmaker(
