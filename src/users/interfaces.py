@@ -1,6 +1,11 @@
 from abc import ABC, abstractmethod
 
-from src.users.schemas import UserResponseSerializer, UserCreateSerializer
+from src.users.schemas import (
+    UserResponseSerializer,
+    UserCreateSerializer,
+    SessionCreateSerializer,
+    UserLoginSerializer,
+)
 
 
 class UserRepositoryInterface(ABC):
@@ -26,6 +31,12 @@ class UserRepositoryInterface(ABC):
     ) -> UserResponseSerializer:
         pass
 
+    @abstractmethod
+    async def authenticate_user(
+        self, email: str, password: str
+    ) -> UserResponseSerializer:
+        pass
+
 
 class UserServiceInterface(ABC):
     @abstractmethod
@@ -40,4 +51,26 @@ class UserServiceInterface(ABC):
     async def create_user(
         self, user: UserCreateSerializer
     ) -> UserResponseSerializer:
+        pass
+
+
+class SessionRepositoryInterface(ABC):
+    @abstractmethod
+    async def create_session(self, session: SessionCreateSerializer) -> str:
+        pass
+
+    @abstractmethod
+    async def delete_session(self, token: str) -> None:
+        pass
+
+
+class SessionServiceInterface(ABC):
+    @abstractmethod
+    async def make_session(self, user_id: int) -> str:
+        pass
+
+
+class AuthServiceInterface(ABC):
+    @abstractmethod
+    async def login(self, login_data: UserLoginSerializer) -> str:
         pass
