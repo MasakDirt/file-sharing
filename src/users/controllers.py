@@ -4,10 +4,10 @@ from starlette import status
 from starlette.responses import RedirectResponse
 
 from src.settings import TEMPLATES
-from src.users.dependencies import get_user_service
+from src.users.dependencies import get_user_service, get_auth_service
 from src.users.exceptions import UsersBaseException
-from src.users.interfaces import UserServiceInterface
-from src.users.schemas import UserCreateSerializer
+from src.users.interfaces import UserServiceInterface, AuthServiceInterface
+from src.users.schemas import UserCreateSerializer, UserLoginSerializer
 
 
 async def get_all_users_controller(
@@ -85,3 +85,34 @@ async def create_user_controller(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(value_exc)
         )
+
+
+async def get_login_page(request: Request):
+    return TEMPLATES.TemplateResponse(
+        request=request,
+        name="registration/login.html"
+    )
+
+
+async def login(
+    request: Request,
+    service: AuthServiceInterface = Depends(get_auth_service)
+):
+    form = await request.form()
+    login_data = UserLoginSerializer(
+        email=form.get("email"),
+        password=form.get("password"),
+    )
+
+    token = await service.login(login_data=login_data)
+
+    response = RedirectResponse(url="/", status_code=302)
+
+    response.set_cookie(
+        key="session",
+        value=token,
+        httponly=True,
+        secure=False,
+    )
+
+    return response
