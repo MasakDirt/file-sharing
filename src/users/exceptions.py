@@ -20,3 +20,9 @@ class InvalidPasswordError(UsersBaseException):
     def __init__(self, message: str = "Your passwords are`nt equal") -> None:
         self.message = message
         super().__init__(message)
+
+
+class InvalidCredentialsError(UsersBaseException):
+    def __init__(self, message: str = "Invalid user credentials"):
+        self.message = message
+        super().__init__(message)
