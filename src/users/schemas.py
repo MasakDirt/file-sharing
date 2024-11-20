@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pydantic import BaseModel, EmailStr, field_validator
 
 from src.users.validators import validate_username, validate_password_strength
@@ -34,3 +36,9 @@ class UserResponseSerializer(BaseModel):
     full_name: str
     is_staff: bool
     is_superuser: bool
+
+
+class SessionCreateSerializer(BaseModel):
+    token: str
+    expired_at: datetime
+    user_id: int
