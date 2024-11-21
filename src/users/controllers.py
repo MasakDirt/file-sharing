@@ -13,7 +13,7 @@ from src.users.schemas import UserCreateSerializer, UserLoginSerializer
 async def get_all_users_controller(
     request: Request,
     service: UserServiceInterface = Depends(get_user_service)
-):
+) -> TEMPLATES.TemplateResponse:
     users = await service.get_all()
 
     return TEMPLATES.TemplateResponse(
@@ -27,7 +27,7 @@ async def get_user_controller(
     request: Request,
     id: int,
     service: UserServiceInterface = Depends(get_user_service)
-):
+) -> TEMPLATES.TemplateResponse:
     try:
         user = await service.get_user(id=id)
     except UsersBaseException as exception:
@@ -43,7 +43,7 @@ async def get_user_controller(
     )
 
 
-def get_sign_up_page(request: Request):
+def get_sign_up_page(request: Request) -> TEMPLATES.TemplateResponse:
     return TEMPLATES.TemplateResponse(
         request=request,
         name="registration/register.html"
@@ -53,7 +53,7 @@ def get_sign_up_page(request: Request):
 async def create_user_controller(
     request: Request,
     service: UserServiceInterface = Depends(get_user_service)
-):
+) -> RedirectResponse:
     form = await request.form()
     try:
         user = UserCreateSerializer(
@@ -87,7 +87,7 @@ async def create_user_controller(
         )
 
 
-async def get_login_page(request: Request):
+async def get_login_page(request: Request) -> TEMPLATES.TemplateResponse:
     return TEMPLATES.TemplateResponse(
         request=request,
         name="registration/login.html"
@@ -97,14 +97,16 @@ async def get_login_page(request: Request):
 async def login(
     request: Request,
     service: AuthServiceInterface = Depends(get_auth_service)
-):
+) -> RedirectResponse:
     form = await request.form()
     login_data = UserLoginSerializer(
         email=form.get("email"),
         password=form.get("password"),
     )
+    remember_me = bool(form.get("remember"))
+    print(remember_me)
 
-    token = await service.login(login_data=login_data)
+    token = await service.login(login_data=login_data, remember_me=remember_me)
 
     response = RedirectResponse(url="/", status_code=302)
 
@@ -114,5 +116,18 @@ async def login(
         httponly=True,
         secure=False,
     )
+
+    return response
+
+
+async def logout(
+    request: Request,
+    service: AuthServiceInterface = Depends(get_auth_service)
+) -> RedirectResponse:
+    session_token = request.cookies.get("session")
+    await service.logout(session_token)
+
+    response = RedirectResponse(url="/login/", status_code=302)
+    response.delete_cookie(key="session")
 
     return response
