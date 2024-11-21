@@ -1,5 +1,5 @@
 import secrets
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 
 from src.users.exceptions import (
     UserNotFoundError,
@@ -59,15 +59,21 @@ class SessionService(SessionServiceInterface):
     def _generate_session_token() -> str:
         return secrets.token_urlsafe(32)
 
-    async def make_session(self, user_id: int) -> str:
+    async def make_session(self, user_id: int, remember_me: bool) -> str:
+        expired_at = datetime.now(UTC) + timedelta(
+            days=10 if remember_me else 3
+        )
         session_create_serializer = SessionCreateSerializer(
             token=self._generate_session_token(),
-            expired_at=datetime.now() + timedelta(days=1),
+            expired_at=expired_at,
             user_id=user_id
         )
         return await self._session_repository.create_session(
             session_create_serializer
         )
+
+    async def remove_session(self, token: str) -> None:
+        await self._session_repository.delete_session(token)
 
 
 class AuthService(AuthServiceInterface):
@@ -78,7 +84,10 @@ class AuthService(AuthServiceInterface):
         self._session_service = session_service
         self._user_repository = user_repository
 
-    async def login(self, login_data: UserLoginSerializer) -> str:
+    async def login(
+        self, login_data: UserLoginSerializer,
+        remember_me: bool
+    ) -> str:
         user = await self._user_repository.authenticate_user(
             email=login_data.email,
             password=login_data.password
@@ -87,6 +96,12 @@ class AuthService(AuthServiceInterface):
         if not user:
             raise InvalidCredentialsError
 
-        token = await self._session_service.make_session(user_id=user.id)
+        token = await self._session_service.make_session(
+            user_id=user.id,
+            remember_me=remember_me
+        )
 
         return token
+
+    async def logout(self, token: str) -> None:
+        await self._session_service.remove_session(token)
