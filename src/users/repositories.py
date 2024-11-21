@@ -1,4 +1,6 @@
-from sqlalchemy import select
+from typing import Optional
+
+from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database.utils import serialize_obj
@@ -92,5 +94,13 @@ class SessionRepository(SessionRepositoryInterface):
 
         return new_session.token
 
+    async def get_session_by_token(self, token: str) -> Optional[Session]:
+        result = await self._db.execute(
+            select(Session).where(Session.token == token)
+        )
+
+        return result.scalar_one_or_none()
+
     async def delete_session(self, token: str) -> None:
-        pass
+        await self._db.execute(delete(Session).where(Session.token == token))
+        await self._db.commit()
