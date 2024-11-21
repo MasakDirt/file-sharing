@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime, timezone
 
 import bcrypt
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey
@@ -17,7 +17,6 @@ class User(Base):
     email = Column(String(255), unique=True)
     username = Column(String(255), unique=True, index=True)
     _hashed_password = Column("hashed_password", String(255))
-    is_staff = Column(Boolean, default=False)
     is_superuser = Column(Boolean, default=False)
 
     sessions = relationship(
@@ -27,7 +26,7 @@ class User(Base):
     )
 
     def __str__(self) -> str:
-        return f"User {self.username} with email: {self.email}"
+        return f"User '{self.username}' with email: {self.email}"
 
     @property
     def password(self) -> None:
@@ -46,6 +45,9 @@ class User(Base):
             password.encode("utf-8"),
             self._hashed_password.encode("utf-8")
         )
+
+    def is_admin(self) -> bool:
+        return self.is_superuser
 
     @validates("username")
     def validate_username(self, key, username: str) -> str:
@@ -66,7 +68,7 @@ class Session(Base):
     id = Column(Integer, primary_key=True, index=True)
     token = Column(String(128), unique=True, index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    expired_at = Column(DateTime, nullable=True)
+    expired_at = Column(DateTime(timezone=True), nullable=True)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
 
     user = relationship("User", back_populates="sessions")
@@ -75,4 +77,6 @@ class Session(Base):
         return f"Token: {self.token} expire at: {self.expired_at}"
 
     def is_expired(self):
-        return datetime.datetime.now() > self.expired_at
+        return datetime.now(timezone.utc) > self.expired_at.replace(
+            tzinfo=timezone.utc
+        )
