@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
+from typing import Optional
 
+from src.users.models import Session
 from src.users.schemas import (
     UserResponseSerializer,
     UserCreateSerializer,
@@ -14,7 +16,9 @@ class UserRepositoryInterface(ABC):
         pass
 
     @abstractmethod
-    async def get_user_by_id(self, id: int) -> UserResponseSerializer | None:
+    async def get_user_by_id(
+        self, id: int
+    ) -> Optional[UserResponseSerializer]:
         pass
 
     @abstractmethod
@@ -60,17 +64,32 @@ class SessionRepositoryInterface(ABC):
         pass
 
     @abstractmethod
+    async def get_session_by_token(self, token: str) -> Optional[Session]:
+        pass
+
+    @abstractmethod
     async def delete_session(self, token: str) -> None:
         pass
 
 
 class SessionServiceInterface(ABC):
     @abstractmethod
-    async def make_session(self, user_id: int) -> str:
+    async def make_session(self, user_id: int, remember_me: bool) -> str:
+        pass
+
+    @abstractmethod
+    async def remove_session(self, token: str) -> None:
         pass
 
 
 class AuthServiceInterface(ABC):
     @abstractmethod
-    async def login(self, login_data: UserLoginSerializer) -> str:
+    async def login(
+        self, login_data: UserLoginSerializer,
+        remember_me: bool
+    ) -> str:
+        pass
+
+    @abstractmethod
+    async def logout(self, token: str) -> None:
         pass
