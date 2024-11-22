@@ -3,6 +3,7 @@ from pydantic_core import ValidationError
 from starlette import status
 from starlette.responses import RedirectResponse
 
+from src.utils.decorators import admin_only
 from src.settings import TEMPLATES
 from src.users.dependencies import get_user_service, get_auth_service
 from src.users.exceptions import UsersBaseException
@@ -10,6 +11,7 @@ from src.users.interfaces import UserServiceInterface, AuthServiceInterface
 from src.users.schemas import UserCreateSerializer, UserLoginSerializer
 
 
+@admin_only
 async def get_all_users_controller(
     request: Request,
     service: UserServiceInterface = Depends(get_user_service)
@@ -23,13 +25,14 @@ async def get_all_users_controller(
     )
 
 
-async def get_user_controller(
+async def get_me_controller(
     request: Request,
-    id: int,
     service: UserServiceInterface = Depends(get_user_service)
 ) -> TEMPLATES.TemplateResponse:
+    auth_user = request.state.user
+
     try:
-        user = await service.get_user(id=id)
+        user = await service.get_user(id=auth_user.id)
     except UsersBaseException as exception:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -66,7 +69,7 @@ async def create_user_controller(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(validation_error)
-        )  # todo: refactor for beauty response
+        )
 
     try:
         new_user = await service.create_user(user)
