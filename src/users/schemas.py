@@ -34,7 +34,6 @@ class UserResponseSerializer(BaseModel):
     email: EmailStr
     username: str
     full_name: str
-    is_staff: bool
     is_superuser: bool
 
 
