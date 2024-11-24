@@ -18,6 +18,14 @@ class FileRepositoryInterface(ABC):
         pass
 
     @abstractmethod
+    async def get_file(self, id: int) -> Optional[File]:
+        pass
+
+    @abstractmethod
+    async def get_file_for_download(self, id: int) -> Optional[File]:
+        pass
+
+    @abstractmethod
     async def get_all_files(self) -> list[File]:
         pass
 
@@ -33,6 +41,10 @@ class FileServiceInterface(ABC):
 
     @abstractmethod
     async def remove_file(self, id: int) -> None:
+        pass
+
+    @abstractmethod
+    async def download_file(self, id: int) -> tuple[str, str]:
         pass
 
 

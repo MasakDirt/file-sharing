@@ -1,17 +1,24 @@
+import datetime
+import logging
+
 from fastapi import Request, HTTPException, Depends, UploadFile, File
 from starlette import status
-from starlette.responses import RedirectResponse
+from starlette.responses import RedirectResponse, FileResponse
 
 from src.files.dependencies import (
     get_file_service,
     get_allowed_files_for_user_service,
 )
+from src.files.exceptions import BaseFileException
 from src.files.interfaces import (
     FileServiceInterface,
     AllowedFilesForUserServiceInterface,
 )
 from src.settings import TEMPLATES, ALLOWED_EXTENSIONS
 from src.utils.decorators import admin_only
+
+
+logger = logging.getLogger("uvicorn.error")
 
 
 @admin_only
@@ -66,7 +73,13 @@ async def remove_file(
     id: int,
     file_service: FileServiceInterface = Depends(get_file_service)
 ) -> RedirectResponse:
-    await file_service.remove_file(id=id)
+    try:
+        await file_service.remove_file(id=id)
+    except BaseFileException as exception:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(exception),
+        )
 
     return RedirectResponse(
         url="/files/",
@@ -77,23 +90,23 @@ async def remove_file(
 @admin_only
 async def get_file_giving_access_page(
     request: Request,
-    file_id: int,
+    id: int,
     allowed_files_service: AllowedFilesForUserServiceInterface = Depends(
         get_allowed_files_for_user_service
     )
 ) -> TEMPLATES.TemplateResponse:
-    users = await allowed_files_service.get_users_with_access_to_file(file_id)
+    users = await allowed_files_service.get_users_with_access_to_file(id)
     return TEMPLATES.TemplateResponse(
         request=request,
         name="files/give_file_access.html",
-        context={"users": users, "file_id": file_id}
+        context={"users": users, "file_id": id}
     )
 
 
 @admin_only
 async def update_users_file_access(
     request: Request,
-    file_id: int,
+    id: int,
     file_access_service: AllowedFilesForUserServiceInterface = Depends(
         get_allowed_files_for_user_service
     )
@@ -101,6 +114,36 @@ async def update_users_file_access(
     form = await request.form()
     selected_user_ids = set(map(int, form.getlist("user_ids")))
 
-    await file_access_service.update_file_access(file_id, selected_user_ids)
+    await file_access_service.update_file_access(id, selected_user_ids)
 
     return RedirectResponse(url="/files/", status_code=status.HTTP_302_FOUND)
+
+
+async def download_file(
+    request: Request,
+    id: int,
+    file_service: FileServiceInterface = Depends(get_file_service)
+) -> FileResponse:
+    try:
+        file_path, file_name = await file_service.download_file(id=id)
+    except BaseFileException as exception:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(exception),
+        )
+
+    logger.info(
+        f"'{request.state.user.email}' - downloaded "
+        f"'{file_name}' - {datetime.datetime.now().strftime('%d %B %Y %H:%M')}"
+    )
+
+    return FileResponse(
+        path=file_path,
+        filename=file_name,
+        media_type="application/octet-stream",
+        headers={
+            "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+            "Pragma": "no-cache",
+            "Expires": "0",
+        },
+    )

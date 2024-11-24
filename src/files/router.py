@@ -7,6 +7,7 @@ from src.files.controllers import (
     remove_file,
     get_file_giving_access_page,
     update_users_file_access,
+    download_file,
 )
 
 router = APIRouter()
@@ -18,9 +19,10 @@ router.get("/files/upload/", name="get-upload-file")(
 )
 router.post("/files/upload/", name="upload-file")(create_file_controller)
 router.post("/files/{id}/delete/", name="file-remove")(remove_file)
-router.get("/files/{file_id}/access/", name="get-file-access")(
+router.get("/files/{id}/access/", name="get-file-access")(
     get_file_giving_access_page
 )
-router.post("/files/{file_id}/access/", name="file-access")(
+router.post("/files/{id}/access/", name="file-access")(
     update_users_file_access
 )
+router.get("/files/{id}/download/", name="file-download")(download_file)

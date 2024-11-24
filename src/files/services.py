@@ -4,13 +4,14 @@ import aiofiles
 from fastapi import UploadFile
 
 from src.database.utils import serialize_obj
+from src.files.exceptions import FileNotFoundInSystemError
 from src.files.interfaces import (
     FileServiceInterface,
     FileRepositoryInterface,
     AllowedFilesForUserServiceInterface,
     AllowedFilesForUserRepositoryInterface,
 )
-from src.files.models import AllowedFilesForUser
+from src.files.models import AllowedFilesForUser, File
 from src.files.schemas import FileCreateSerializer, FileResponseSerializer
 from src.files.utils import make_unique_filename
 from src.files.validators import validate_file_size
@@ -48,12 +49,29 @@ class FileService(FileServiceInterface):
             for file in files
         ]
 
+    @staticmethod
+    def _check_file_and_get_path(file: File) -> str:
+        if file:
+            file_path = os.path.join(UPLOADED_DIR, file.new_file_name)
+
+            if not os.path.exists(file_path):
+                raise FileNotFoundInSystemError
+
+            return file_path
+
+        raise FileNotFoundInSystemError
+
     async def remove_file(self, id: int) -> None:
         file = await self._file_repository.get_file(id=id)
         await self._file_repository.delete_file(id=id)
-        if file:
-            file_path = os.path.join(UPLOADED_DIR, file.new_file_name)
-            os.remove(file_path)
+        file_path = self._check_file_and_get_path(file)
+        os.remove(file_path)
+
+    async def download_file(self, id: int) -> tuple[str, str]:
+        file = await self._file_repository.get_file_for_download(id=id)
+        file_path = self._check_file_and_get_path(file)
+
+        return file_path, file.original_name
 
 
 class AllowedFilesForUserService(AllowedFilesForUserServiceInterface):
@@ -96,7 +114,9 @@ class AllowedFilesForUserService(AllowedFilesForUserServiceInterface):
         selected_user_ids: set[int]
     ) -> None:
         current_user_ids = set(
-            await self._allowed_repository.get_users_with_access_to_file(file_id)
+            await self._allowed_repository.get_users_with_access_to_file(
+                file_id
+            )
         )
 
         users_to_add = selected_user_ids - current_user_ids

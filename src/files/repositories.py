@@ -31,6 +31,16 @@ class FileRepository(FileRepositoryInterface):
         file = await self._db.execute(select(File).filter_by(id=id))
         return file.scalar_one_or_none()
 
+    async def get_file_for_download(self, id: int) -> Optional[File]:
+        file = await self.get_file(id=id)
+        if file:
+            file.downloaded += 1
+            self._db.add(file)
+            await self._db.commit()
+            await self._db.refresh(file)
+
+        return file
+
     async def get_all_files(self) -> Sequence[File]:
         result = await self._db.execute(select(File))
         return result.scalars().all()
