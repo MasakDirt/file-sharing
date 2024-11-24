@@ -111,7 +111,7 @@ async def login(
 
     token = await service.login(login_data=login_data, remember_me=remember_me)
 
-    response = RedirectResponse(url="/", status_code=302)
+    response = RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
 
     response.set_cookie(
         key="session",
