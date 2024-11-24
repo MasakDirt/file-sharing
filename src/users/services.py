@@ -1,6 +1,7 @@
 import secrets
 from datetime import datetime, timedelta, UTC
 
+from src.database.utils import serialize_obj
 from src.users.exceptions import (
     UserNotFoundError,
     UserAlreadyExistsError,
@@ -26,10 +27,18 @@ class UserService(UserServiceInterface):
         self._user_repository = user_repository
 
     async def get_all(self) -> list[UserResponseSerializer]:
-        return await self._user_repository.get_all_users()
+        users = await self._user_repository.get_all_users()
+        return [
+            UserResponseSerializer(**serialize_obj(user))
+            for user in users
+        ]
 
     async def get_user(self, id: int) -> UserResponseSerializer:
-        user = await self._user_repository.get_user_by_id(id=id)
+        user = UserResponseSerializer(
+            **serialize_obj(
+                await self._user_repository.get_user_by_id(id=id)
+            )
+        )
         if user:
             return user
 
@@ -48,7 +57,7 @@ class UserService(UserServiceInterface):
             )
 
         new_user = await self._user_repository.register_user(user)
-        return new_user
+        return UserResponseSerializer(**serialize_obj(new_user))
 
 
 class SessionService(SessionServiceInterface):
