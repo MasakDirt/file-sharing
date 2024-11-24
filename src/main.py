@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 
+from src.files.router import router as files_router
 from src.settings import STATIC_DIR, TEMPLATES
 from src.users.router import router as users_router
 from src.utils.middlewares import (
@@ -12,6 +13,7 @@ from src.utils.middlewares import (
 app = FastAPI()
 
 app.include_router(users_router)
+app.include_router(files_router)
 
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
