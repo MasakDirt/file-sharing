@@ -1,10 +1,13 @@
-from typing import Sequence
+from typing import Sequence, Optional
 
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.files.interfaces import FileRepositoryInterface
-from src.files.models import File
+from src.files.interfaces import (
+    FileRepositoryInterface,
+    AllowedFilesForUserRepositoryInterface,
+)
+from src.files.models import File, AllowedFilesForUser
 from src.files.schemas import FileCreateSerializer
 
 
@@ -21,8 +24,48 @@ class FileRepository(FileRepositoryInterface):
         return new_file.original_name
 
     async def delete_file(self, id: int) -> None:
-        pass
+        await self._db.execute(delete(File).filter_by(id=id))
+        await self._db.commit()
+
+    async def get_file(self, id: int) -> Optional[File]:
+        file = await self._db.execute(select(File).filter_by(id=id))
+        return file.scalar_one_or_none()
 
     async def get_all_files(self) -> Sequence[File]:
         result = await self._db.execute(select(File))
+        return result.scalars().all()
+
+
+class AllowedFilesForUserRepository(AllowedFilesForUserRepositoryInterface):
+    def __init__(self, db: AsyncSession) -> None:
+        self._db = db
+
+    async def create_files_access(
+        self, allowed_files: list[AllowedFilesForUser]
+    ) -> None:
+        self._db.add_all(allowed_files)
+        await self._db.commit()
+
+    async def delete_files_access(
+        self, file_id: int,
+        user_ids: set[int],
+    ) -> None:
+        if not user_ids:
+            return
+        query = delete(AllowedFilesForUser).where(
+            AllowedFilesForUser.allowed_file_id == file_id,
+            AllowedFilesForUser.user_id.in_(user_ids),
+        )
+        await self._db.execute(query)
+        await self._db.commit()
+
+    async def get_users_with_access_to_file(
+        self, file_id: int
+    ) -> Sequence[int]:
+        result = await self._db.execute(
+            select(AllowedFilesForUser.user_id).filter_by(
+                allowed_file_id=file_id
+            )
+        )
+
         return result.scalars().all()
