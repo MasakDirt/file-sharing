@@ -24,6 +24,7 @@ class User(Base):
         back_populates="user",
         cascade="all, delete-orphan"
     )
+    allowed_files = relationship("AllowedFilesForUser", back_populates="users")
 
     def __str__(self) -> str:
         return f"User '{self.username}' with email: {self.email}"
@@ -51,13 +52,11 @@ class User(Base):
 
     @validates("username")
     def validate_username(self, key, username: str) -> str:
-        print(key)
         validate_username(username)
         return username
 
     @validates("email")
     def validate_email(self, key, email: str) -> str:
-        print(key)
         validate_email(email)
         return email
 
