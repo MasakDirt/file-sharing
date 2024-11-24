@@ -68,6 +68,10 @@ class AllowedFilesForUserRepositoryInterface(ABC):
     ) -> Sequence[int]:
         pass
 
+    @abstractmethod
+    async def get_user_files(self, user_id: int) -> Sequence[File]:
+        pass
+
 
 class AllowedFilesForUserServiceInterface(ABC):
     @abstractmethod

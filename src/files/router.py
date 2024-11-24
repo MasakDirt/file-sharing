@@ -8,6 +8,7 @@ from src.files.controllers import (
     get_file_giving_access_page,
     update_users_file_access,
     download_file,
+    get_user_files,
 )
 
 router = APIRouter()
@@ -26,3 +27,4 @@ router.post("/files/{id}/access/", name="file-access")(
     update_users_file_access
 )
 router.get("/files/{id}/download/", name="file-download")(download_file)
+router.get("/files/my/", name="user-files")(get_user_files)

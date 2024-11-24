@@ -8,15 +8,16 @@ from starlette.responses import RedirectResponse, FileResponse
 from src.files.dependencies import (
     get_file_service,
     get_allowed_files_for_user_service,
+    get_allowed_files_for_user_repository,
 )
 from src.files.exceptions import BaseFileException
 from src.files.interfaces import (
     FileServiceInterface,
     AllowedFilesForUserServiceInterface,
 )
+from src.files.repositories import AllowedFilesForUserRepository
 from src.settings import TEMPLATES, ALLOWED_EXTENSIONS
 from src.utils.decorators import admin_only
-
 
 logger = logging.getLogger("uvicorn.error")
 
@@ -146,4 +147,19 @@ async def download_file(
             "Pragma": "no-cache",
             "Expires": "0",
         },
+    )
+
+
+async def get_user_files(
+    request: Request,
+    allowed_files_repository: AllowedFilesForUserRepository = Depends(
+        get_allowed_files_for_user_repository
+    )
+) -> TEMPLATES.TemplateResponse:
+    files = await allowed_files_repository.get_user_files(request.state.user.id)
+
+    return TEMPLATES.TemplateResponse(
+        request=request,
+        name="files/files_list.html",
+        context={"files": files}
     )

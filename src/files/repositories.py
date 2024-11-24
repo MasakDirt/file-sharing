@@ -79,3 +79,14 @@ class AllowedFilesForUserRepository(AllowedFilesForUserRepositoryInterface):
         )
 
         return result.scalars().all()
+
+    async def get_user_files(self, user_id: int) -> Sequence[File]:
+        result = await self._db.execute(
+            select(File)
+            .join(
+                AllowedFilesForUser,
+                File.id == AllowedFilesForUser.allowed_file_id
+                )
+            .filter(AllowedFilesForUser.user_id == user_id)
+        )
+        return result.scalars().all()
