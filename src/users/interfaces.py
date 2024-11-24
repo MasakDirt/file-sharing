@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 
-from src.users.models import Session
+from src.users.models import Session, User
 from src.users.schemas import (
     UserResponseSerializer,
     UserCreateSerializer,
@@ -12,13 +12,13 @@ from src.users.schemas import (
 
 class UserRepositoryInterface(ABC):
     @abstractmethod
-    async def get_all_users(self) -> list[UserResponseSerializer]:
+    async def get_all_users(self, with_admins: bool = True) -> list[User]:
         pass
 
     @abstractmethod
     async def get_user_by_id(
         self, id: int
-    ) -> Optional[UserResponseSerializer]:
+    ) -> Optional[User]:
         pass
 
     @abstractmethod
@@ -32,13 +32,13 @@ class UserRepositoryInterface(ABC):
     @abstractmethod
     async def register_user(
         self, user: UserCreateSerializer
-    ) -> UserResponseSerializer:
+    ) -> User:
         pass
 
     @abstractmethod
     async def authenticate_user(
         self, email: str, password: str
-    ) -> UserResponseSerializer:
+    ) -> User:
         pass
 
 
