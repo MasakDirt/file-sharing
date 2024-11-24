@@ -15,5 +15,6 @@ async def validate_file_size(file: UploadFile) -> None:
     if file.size > MAX_FILE_SIZE:
         raise ValueError(
             f"The maximum size of file must be - "
-            f"{(MAX_FILE_SIZE // 1024) // 1024}MB"
+            f"{(MAX_FILE_SIZE / 1024) / 1024} MB, but your size is "
+            f"{round((file.size / 1024) / 1024, 2)} MB"
         )
