@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import relationship, validates
 
 from src.database.base import Base
@@ -45,3 +45,7 @@ class AllowedFilesForUser(Base):
 
     users = relationship("User", back_populates="allowed_files")
     files = relationship("File", back_populates="allowed_for")
+
+    __table_args__ = (
+        UniqueConstraint("user_id", "allowed_file_id", name="uq_user_file"),
+    )
