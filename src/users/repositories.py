@@ -1,16 +1,14 @@
-from typing import Optional
+from typing import Optional, Sequence
 
 from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.database.utils import serialize_obj
 from src.users.interfaces import (
     UserRepositoryInterface,
     SessionRepositoryInterface,
 )
 from src.users.models import User, Session
 from src.users.schemas import (
-    UserResponseSerializer,
     UserCreateSerializer,
     SessionCreateSerializer,
 )
@@ -20,29 +18,18 @@ class UserRepository(UserRepositoryInterface):
     def __init__(self, db: AsyncSession) -> None:
         self._db = db
 
-    async def get_all_users(self) -> list[UserResponseSerializer]:
-        result = await self._db.execute(select(User))
-        users = result.scalars().all()
-        return [
-            UserResponseSerializer(**serialize_obj(user))
-            for user in users
-        ]
+    async def get_all_users(self, with_admins: bool = True) -> Sequence[User]:
+        if with_admins:
+            result = await self._db.execute(select(User))
+        else:
+            result = await self._db.execute(
+                select(User).filter_by(is_superuser=False)
+            )
+        return result.scalars().all()
 
-    async def get_user_by_id(self, id: int) -> UserResponseSerializer | None:
+    async def get_user_by_id(self, id: int) -> Optional[User]:
         result = await self._db.execute(select(User).where(User.id == id))
-        user = result.scalar_one_or_none()
-
-        return UserResponseSerializer(**serialize_obj(user)) if user else None
-
-    async def get_user_by_email(
-        self, email: str
-    ) -> User | None:
-        result = await self._db.execute(
-            select(User).where(User.email == email)
-        )
-        user = result.scalar_one_or_none()
-
-        return user
+        return result.scalar_one_or_none()
 
     async def _is_field_exists(
         self, field_name: str,
@@ -62,22 +49,31 @@ class UserRepository(UserRepositoryInterface):
 
     async def register_user(
         self, user: UserCreateSerializer
-    ) -> UserResponseSerializer:
+    ) -> User:
         new_user = User(**user.model_dump())
         self._db.add(new_user)
         await self._db.commit()
         await self._db.refresh(new_user)
 
-        return UserResponseSerializer(**serialize_obj(new_user))
+        return new_user
+
+    async def _get_user_by_email(
+        self, email: str
+    ) -> Optional[User]:
+        result = await self._db.execute(
+            select(User).where(User.email == email)
+        )
+        user = result.scalar_one_or_none()
+
+        return user
 
     async def authenticate_user(
         self, email: str, password: str
-    ) -> UserResponseSerializer | None:
-        result = await self._db.execute(select(User).filter_by(email=email))
-        user = result.scalar_one_or_none()
+    ) -> Optional[User]:
+        user = await self._get_user_by_email(email)
 
         if user and user.check_password(password):
-            return UserResponseSerializer(**serialize_obj(user))
+            return user
 
         return None
 
