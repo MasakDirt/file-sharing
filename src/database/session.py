@@ -10,7 +10,7 @@ def get_db_url() -> str:
 
 engine = create_async_engine(
     get_db_url(),
-    echo=settings.DEBUG == "True",
+    echo=settings.DEBUG,
     future=True,
 )
 
