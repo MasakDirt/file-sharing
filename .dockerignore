@@ -1,0 +1,8 @@
+.venv
+.env.sample
+.idea
+.gitignore
+README.md
+regular_user_interface.png
+admin_dashboard.png
+__pycache__
