@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}
+  Upload File
+{% endblock %}
+
+{% block content %}
+  <div class="container py-5">
+    <div class="row justify-content-center">
+      <div class="col-lg-6">
+        <div class="card shadow-lg border-0">
+          <div class="card-header bg-gradient-primary text-center py-4">
+            <h2 class="fw-bold mb-0">Upload a File</h2>
+          </div>
+          <div class="card-body">
+            <form
+                id="file-upload"
+                method="post"
+                action="{{ url_for('upload-file') }}"
+                enctype="multipart/form-data"
+                class="needs-validation"
+                novalidate>
+              <div class="mb-4">
+                <label for="file" class="form-label fw-semibold">Choose
+                  File</label>
+                <input
+                    type="file"
+                    name="file"
+                    id="file"
+                    class="form-control"
+                    accept="{{ allowed_extensions }}"
+                    required>
+                <small class="form-text text-muted mt-1">
+                  Allowed file types: {{ allowed_extensions }}
+                </small>
+              </div>
+              <button type="submit" class="btn btn-primary w-100 btn-lg">
+                <i class="bi bi-upload"></i> Upload
+              </button>
+            </form>
+            <div class="mt-4 text-center">
+              <a href="/" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-house"></i> Back to Home
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  document.getElementById('file-upload').addEventListener('submit', async function (event) {
+    event.preventDefault();
+
+    const form = event.target;
+    const csrfToken = "{{ csrf_token }}";
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(form.action, {
+        method: form.method,
+        body: formData,
+        headers: {
+          'X-CSRF-Token': csrfToken
+        }
+      });
+
+      if (response.ok) {
+        window.location.href = "{{ url_for('file-list') }}";
+      } else {
+        console.error('Form submission failed:', response);
+        alert('Failed to grant access. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error during submission:', error);
+      alert('An error occurred. Please try again.');
+    }
+  });
+</script>
+{% endblock %}

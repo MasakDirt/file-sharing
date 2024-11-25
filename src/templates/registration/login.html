@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+  <div class="container py-5">
+    <div class="row justify-content-center">
+      <div class="col-lg-5">
+        <div class="card shadow-lg border-0">
+          <div class="card-header bg-gradient-primary text-center py-4">
+            <h2 class="fw-bold mb-0">Welcome Back!</h2>
+            <p class="small">Login to access your account</p>
+          </div>
+          <div class="card-body">
+            <form id="login-form" method="post"
+                  action="{{ url_for('post-login') }}" class="needs-validation"
+                  novalidate>
+              <div class="mb-4">
+                <label for="email" class="form-label fw-semibold">Email
+                  Address</label>
+                <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    class="form-control"
+                    placeholder="Enter your email"
+                    required>
+                <div class="invalid-feedback">Please enter a valid email.</div>
+              </div>
+              <div class="mb-4">
+                <label for="password"
+                       class="form-label fw-semibold">Password</label>
+                <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    class="form-control"
+                    placeholder="Enter your password"
+                    required>
+                <div class="invalid-feedback">Password is required.</div>
+              </div>
+              <div
+                  class="d-flex justify-content-between align-items-center mb-4">
+                <div class="form-check">
+                  <input
+                      type="checkbox"
+                      class="form-check-input"
+                      id="remember"
+                      name="remember">
+                  <label for="remember" class="form-check-label">Remember
+                    Me</label>
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary w-100 btn-lg">
+                <i class="bi bi-box-arrow-in-right"></i> Login
+              </button>
+            </form>
+          </div>
+          <div class="card-footer text-center py-3">
+            <p class="mb-0 small">Don't have an account?
+              <a href="{{ url_for('get-sign-up') }}"
+                 class="text-primary fw-bold">Sign up</a>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <script>
+      document.getElementById('login-form').addEventListener('submit', async function (event) {
+          event.preventDefault();
+
+          const form = event.target;
+          const csrfToken = "{{ csrf_token }}";
+          const formData = new FormData(form);
+
+          const response = await fetch(form.action, {
+              method: form.method,
+              body: formData,
+              headers: {
+                  'X-CSRF-Token': csrfToken
+              }
+          });
+          window.location.href = response.url
+      });
+  </script>
+{% endblock %}

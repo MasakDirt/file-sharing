@@ -1,0 +1,38 @@
+services:
+  file-sharing:
+    build:
+      context: .
+    env_file:
+      - .env
+    ports:
+      - "8001:8000"
+    volumes:
+      - ./:/app
+    command: "uvicorn src.main:app --host 0.0.0.0 --port 8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8000" ]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+
+  db:
+    image: mysql:5.7
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "3306:3306"
+    expose:
+      - "3306"
+    volumes:
+      - my-db:/var/lib/mysql
+    healthcheck:
+      test: [ "CMD-SHELL", "mysqladmin ping -h $HOST -u $MYSQL_USER --password=$MYSQL_PASSWORD || exit 1" ]
+      interval: 5s
+      retries: 5
+
+volumes:
+  my-db:

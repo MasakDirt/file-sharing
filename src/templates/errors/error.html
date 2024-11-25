@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}
+  Error {{ status_code }}
+{% endblock %}
+
+{% block content %}
+<div class="container py-5 text-center">
+  <h1 class="display-3 text-danger">Oops! {{ detail }}</h1>
+  <p class="fs-3">An error occurred while processing your request.</p>
+  <p class="fs-5 text-muted">
+    <strong>Status Code:</strong> {{ status_code }}<br>
+  </p>
+  <a href="/" class="btn btn-primary mt-4">
+    <i class="bi bi-arrow-left-circle"></i> Go Back Home
+  </a>
+</div>
+{% endblock %}

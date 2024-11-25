@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}
+  Grant File Access
+{% endblock %}
+
+{% block content %}
+  <div class="container py-5">
+    <div class="text-center mb-4">
+      <h2 class="fw-bold text-primary">Grant Access to File</h2>
+    </div>
+    <form id="file-access-form"
+          action="{{ url_for('file-access', id=file_id) }}" method="post">
+      <div class="mb-3">
+        <h5 class="text-dark">Select Users:</h5>
+        {% if users %}
+          {% for user in users %}
+            <div class="form-check">
+              <input
+                  class="form-check-input"
+                  type="checkbox"
+                  id="user-{{ user.id }}"
+                  name="user_ids"
+                  value="{{ user.id }}"
+                  {% if user.has_access %} checked {% endif %}
+              />
+              <label class="form-check-label" for="user-{{ user.id }}">
+                {{ user.username }} (E-mail: {{ user.email }} |
+                ID: {{ user.id }})
+              </label>
+            </div>
+          {% endfor %}
+        {% else %}
+          <p class="text-muted">No users available to assign access.</p>
+        {% endif %}
+      </div>
+      <button type="submit" class="btn btn-success">
+        <i class="bi bi-check-circle"></i> Grant Access
+      </button>
+      <a href="{{ url_for('file-list') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left-circle"></i> Back to Files
+      </a>
+    </form>
+  </div>
+
+<script>
+  document.getElementById('file-access-form').addEventListener('submit', async function (event) {
+    event.preventDefault();
+
+    const form = event.target;
+    const csrfToken = "{{ csrf_token }}";
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(form.action, {
+        method: form.method,
+        body: formData,
+        headers: {
+          'X-CSRF-Token': csrfToken
+        }
+      });
+
+      if (response.ok) {
+        window.location.href = "{{ url_for('file-list') }}";
+      } else {
+        console.error('Form submission failed:', response);
+        alert('Failed to grant access. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error during submission:', error);
+      alert('An error occurred. Please try again.');
+    }
+  });
+</script>
+{% endblock %}
