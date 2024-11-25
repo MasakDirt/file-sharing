@@ -18,6 +18,9 @@ DATABASE_URL = f"mysql+aiomysql://{MYSQL_USER}:{MYSQL_PASSWORD}@{HOST}:3306/{MYS
 
 DEBUG = os.getenv("DEBUG") == "True"
 
+# CSRF
+CSRF_SECRET_KEY = os.getenv("CSRF_SECRET_KEY")
+
 # Get important dir paths
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 

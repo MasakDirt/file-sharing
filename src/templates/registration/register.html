@@ -3,68 +3,93 @@
 {% block title %}Register{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-  <div class="row justify-content-center">
-    <div class="col-lg-6">
-      <div class="card shadow-lg border-0">
-        <div class="card-header bg-gradient-success text-center py-4">
-          <h2 class="fw-bold mb-0">Create Your Account</h2>
-          <p class="small">Join us today and start sharing!</p>
-        </div>
-        <div class="card-body">
-          <form action="{{ url_for('post-sign-up') }}" method="post" class="needs-validation" novalidate>
-            <div class="mb-4">
-              <label for="email" class="form-label fw-semibold">Email Address</label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                class="form-control"
-                placeholder="Enter your email"
-                required>
-            </div>
-            <div class="mb-4">
-              <label for="username" class="form-label fw-semibold">Username</label>
-              <input
-                type="text"
-                id="username"
-                name="username"
-                class="form-control"
-                placeholder="Enter your username"
-                required>
-            </div>
-            <div class="mb-4">
-              <label for="full_name" class="form-label fw-semibold">Full Name</label>
-              <input
-                type="text"
-                id="full_name"
-                name="full_name"
-                class="form-control"
-                placeholder="Enter your full name"
-                required>
-            </div>
-            <div class="mb-4">
-              <label for="password" class="form-label fw-semibold">Password</label>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                class="form-control"
-                placeholder="Enter your password"
-                required>
-            </div>
-            <button type="submit" class="btn btn-success w-100 btn-lg">
-              <i class="bi bi-person-plus"></i> Register
-            </button>
-          </form>
-        </div>
-        <div class="card-footer text-center py-3">
-          <p class="mb-0 small">Already have an account?
-            <a href="{{ url_for('post-login') }}" class="text-success fw-bold">Login here</a>
-          </p>
+  <div class="container py-5">
+    <div class="row justify-content-center">
+      <div class="col-lg-6">
+        <div class="card shadow-lg border-0">
+          <div class="card-header bg-gradient-success text-center py-4">
+            <h2 class="fw-bold mb-0">Create Your Account</h2>
+            <p class="small">Join us today and start sharing!</p>
+          </div>
+          <div class="card-body">
+            <form id="sign-up-form" action="{{ url_for('post-sign-up') }}"
+                  method="post" class="needs-validation" novalidate>
+              <div class="mb-4">
+                <label for="email" class="form-label fw-semibold">Email
+                  Address</label>
+                <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    class="form-control"
+                    placeholder="Enter your email"
+                    required>
+              </div>
+              <div class="mb-4">
+                <label for="username"
+                       class="form-label fw-semibold">Username</label>
+                <input
+                    type="text"
+                    id="username"
+                    name="username"
+                    class="form-control"
+                    placeholder="Enter your username"
+                    required>
+              </div>
+              <div class="mb-4">
+                <label for="full_name" class="form-label fw-semibold">Full
+                  Name</label>
+                <input
+                    type="text"
+                    id="full_name"
+                    name="full_name"
+                    class="form-control"
+                    placeholder="Enter your full name"
+                    required>
+              </div>
+              <div class="mb-4">
+                <label for="password"
+                       class="form-label fw-semibold">Password</label>
+                <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    class="form-control"
+                    placeholder="Enter your password"
+                    required>
+              </div>
+              <button type="submit" class="btn btn-success w-100 btn-lg">
+                <i class="bi bi-person-plus"></i> Register
+              </button>
+            </form>
+          </div>
+          <div class="card-footer text-center py-3">
+            <p class="mb-0 small">Already have an account?
+              <a href="{{ url_for('post-login') }}"
+                 class="text-success fw-bold">Login here</a>
+            </p>
+          </div>
         </div>
       </div>
     </div>
   </div>
-</div>
+
+  <script>
+      document.getElementById('sign-up-form').addEventListener('submit', async function (event) {
+          event.preventDefault();
+
+          const form = event.target;
+          const csrfToken = "{{ csrf_token }}";
+          const formData = new FormData(form);
+
+          const response = await fetch(form.action, {
+              method: form.method,
+              body: formData,
+              headers: {
+                  'X-CSRF-Token': csrfToken
+              }
+          });
+          window.location.href = response.url
+      });
+  </script>
 {% endblock %}

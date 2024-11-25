@@ -30,8 +30,7 @@ async def authentication_middleware(request: Request, call_next):
             )
             request.state.user = user_result.scalar_one_or_none()
 
-    response = await call_next(request)
-    return response
+    return await call_next(request)
 
 
 async def add_user_to_templates(request: Request, call_next):

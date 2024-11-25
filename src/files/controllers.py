@@ -2,6 +2,7 @@ import datetime
 import logging
 
 from fastapi import Request, HTTPException, Depends, UploadFile, File
+from fastapi_csrf_protect import CsrfProtect
 from starlette import status
 from starlette.responses import RedirectResponse, FileResponse
 
@@ -17,26 +18,38 @@ from src.files.interfaces import (
 )
 from src.files.repositories import AllowedFilesForUserRepository
 from src.settings import TEMPLATES, ALLOWED_EXTENSIONS
-from src.utils.decorators import admin_only
+from src.utils.decorators import (
+    admin_only,
+    set_csrf_token,
+    validate_csrf_token,
+)
+
 
 logger = logging.getLogger("uvicorn.error")
 
 
+@set_csrf_token
 @admin_only
 async def get_file_upload_page_controller(
-    request: Request
+    request: Request,
+    csrf_protect: CsrfProtect = Depends()
 ) -> TEMPLATES.TemplateResponse:
     allowed_extensions = ", ".join(ALLOWED_EXTENSIONS)
     return TEMPLATES.TemplateResponse(
         request=request,
         name="files/upload.html",
-        context={"allowed_extensions": allowed_extensions}
+        context={
+            "allowed_extensions": allowed_extensions,
+            "csrf_token": request.state.csrf_token
+        }
     )
 
 
+@validate_csrf_token
 @admin_only
 async def create_file_controller(
     request: Request,
+    csrf_protect: CsrfProtect = Depends(),
     file: UploadFile = File(...),
     file_service: FileServiceInterface = Depends(get_file_service)
 ) -> RedirectResponse:
@@ -88,10 +101,12 @@ async def remove_file(
     )
 
 
+@set_csrf_token
 @admin_only
 async def get_file_giving_access_page(
     request: Request,
     id: int,
+    csrf_protect: CsrfProtect = Depends(),
     allowed_files_service: AllowedFilesForUserServiceInterface = Depends(
         get_allowed_files_for_user_service
     )
@@ -100,14 +115,20 @@ async def get_file_giving_access_page(
     return TEMPLATES.TemplateResponse(
         request=request,
         name="files/give_file_access.html",
-        context={"users": users, "file_id": id}
+        context={
+            "users": users,
+            "file_id": id,
+            "csrf_token": request.state.csrf_token
+        }
     )
 
 
+@validate_csrf_token
 @admin_only
 async def update_users_file_access(
     request: Request,
     id: int,
+    csrf_protect: CsrfProtect = Depends(),
     file_access_service: AllowedFilesForUserServiceInterface = Depends(
         get_allowed_files_for_user_service
     )
@@ -156,7 +177,9 @@ async def get_user_files(
         get_allowed_files_for_user_repository
     )
 ) -> TEMPLATES.TemplateResponse:
-    files = await allowed_files_repository.get_user_files(request.state.user.id)
+    files = await allowed_files_repository.get_user_files(
+        request.state.user.id
+    )
 
     return TEMPLATES.TemplateResponse(
         request=request,

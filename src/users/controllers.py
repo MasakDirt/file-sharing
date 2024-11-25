@@ -1,9 +1,14 @@
 from fastapi import Request, Depends, HTTPException
+from fastapi_csrf_protect import CsrfProtect
 from pydantic_core import ValidationError
 from starlette import status
 from starlette.responses import RedirectResponse
 
-from src.utils.decorators import admin_only
+from src.utils.decorators import (
+    admin_only,
+    set_csrf_token,
+    validate_csrf_token,
+)
 from src.settings import TEMPLATES
 from src.users.dependencies import get_user_service, get_auth_service
 from src.users.exceptions import UsersBaseException
@@ -46,15 +51,22 @@ async def get_me_controller(
     )
 
 
-async def get_sign_up_page(request: Request) -> TEMPLATES.TemplateResponse:
+@set_csrf_token
+async def get_sign_up_page(
+    request: Request,
+    csrf_protect: CsrfProtect = Depends(),
+) -> TEMPLATES.TemplateResponse:
     return TEMPLATES.TemplateResponse(
         request=request,
-        name="registration/register.html"
+        name="registration/register.html",
+        context={"csrf_token": request.state.csrf_token}
     )
 
 
+@validate_csrf_token
 async def create_user_controller(
     request: Request,
+    csrf_protect: CsrfProtect = Depends(),
     service: UserServiceInterface = Depends(get_user_service)
 ) -> RedirectResponse:
     form = await request.form()
@@ -90,15 +102,22 @@ async def create_user_controller(
         )
 
 
-async def get_login_page(request: Request) -> TEMPLATES.TemplateResponse:
+@set_csrf_token
+async def get_login_page(
+    request: Request,
+    csrf_protect: CsrfProtect = Depends(),
+) -> TEMPLATES.TemplateResponse:
     return TEMPLATES.TemplateResponse(
         request=request,
-        name="registration/login.html"
+        name="registration/login.html",
+        context={"csrf_token": request.state.csrf_token}
     )
 
 
+@validate_csrf_token
 async def login(
     request: Request,
+    csrf_protect: CsrfProtect = Depends(),
     service: AuthServiceInterface = Depends(get_auth_service)
 ) -> RedirectResponse:
     form = await request.form()
@@ -107,9 +126,17 @@ async def login(
         password=form.get("password"),
     )
     remember_me = bool(form.get("remember"))
-    print(remember_me)
 
-    token = await service.login(login_data=login_data, remember_me=remember_me)
+    try:
+        token = await service.login(
+            login_data=login_data,
+            remember_me=remember_me
+        )
+    except UsersBaseException as exception:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(exception)
+        )
 
     response = RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
 

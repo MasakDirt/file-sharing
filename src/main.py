@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 
+from src.csrf import *
 from src.files.router import router as files_router
 from src.settings import STATIC_DIR, TEMPLATES
 from src.users.router import router as users_router
