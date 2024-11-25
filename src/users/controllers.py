@@ -46,7 +46,7 @@ async def get_me_controller(
     )
 
 
-def get_sign_up_page(request: Request) -> TEMPLATES.TemplateResponse:
+async def get_sign_up_page(request: Request) -> TEMPLATES.TemplateResponse:
     return TEMPLATES.TemplateResponse(
         request=request,
         name="registration/register.html"
@@ -72,10 +72,10 @@ async def create_user_controller(
         )
 
     try:
-        new_user = await service.create_user(user)
+        await service.create_user(user)
 
         return RedirectResponse(
-            url=f"/users/{new_user.id}/",
+            url="/",
             status_code=status.HTTP_303_SEE_OTHER
         )
     except UsersBaseException as exception:

@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}
+  User Detail
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+      <div class="card shadow-lg border-0">
+        <div class="card-header bg-primary text-white text-center">
+          <h2 class="fw-bold mb-0">User Details</h2>
+        </div>
+        <div class="card-body">
+          <div class="text-center mb-4">
+            <i class="bi bi-person-circle text-primary fs-1"></i>
+          </div>
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item d-flex justify-content-between">
+              <span class="fw-bold">ID:</span>
+              <span>{{ user.id }}</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between">
+              <span class="fw-bold">Username:</span>
+              <span>{{ user.username }}</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between">
+              <span class="fw-bold">Email:</span>
+              <span>{{ user.email }}</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between">
+              <span class="fw-bold">Staff Status:</span>
+              <span>{{ 'Yes' if user.is_staff else 'No' }}</span>
+            </li>
+          </ul>
+        </div>
+        <div class="card-footer bg-light text-center">
+          <a href="{{ url_for('index') }}" class="btn btn-primary me-2">
+            <i class="bi bi-arrow-left"></i> Back to Home
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}
+  Home - File Sharing System
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <div class="text-center mb-4">
+    <h1 class="display-5">Welcome to the File Sharing System</h1>
+    <p class="text-muted">A secure and user-friendly platform for file management.</p>
+  </div>
+  <div class="row mb-5">
+    <div class="col-lg-6 mb-3">
+      <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0">For Regular Users</h5>
+        </div>
+        <div class="card-body">
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+              <strong>View Available Files:</strong> Access to files granted by the admin.
+            </li>
+            <li class="list-group-item">
+              <strong>Download Files:</strong> Download only authorized files.
+            </li>
+          </ul>
+          <div class="mt-3 text-center">
+            <a href="{{ url_for('user-files') }}" class="btn btn-primary">View Files</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6 mb-3">
+      <div class="card shadow">
+        <div class="card-header bg-danger text-white">
+          <h5 class="mb-0">For Admins</h5>
+        </div>
+        <div class="card-body">
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+              <strong>Upload Files:</strong> Add files to the server and set user access.
+            </li>
+            <li class="list-group-item">
+              <strong>Manage Files:</strong> Delete files and track downloads.
+            </li>
+            <li class="list-group-item">
+              <strong>Download Any File:</strong> Access and download any file on the system.
+            </li>
+          </ul>
+          <div class="mt-3 text-center">
+            <a href="{{ url_for('file-list') }}" class="btn btn-danger">Manage Files</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-lg-12">
+      <div class="card shadow-lg">
+        <div class="card-header bg-secondary text-white text-center">
+          <h5 class="mb-0">How It Works</h5>
+        </div>
+        <div class="card-body">
+          <p class="text-muted">
+            This system provides seamless file sharing capabilities. Admins can upload files and control access, while regular users can browse and download files based on permissions.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

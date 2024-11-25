@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}
+  Grant File Access
+{% endblock %}
+
+{% block content %}
+  <div class="container py-5">
+    <div class="text-center mb-4">
+      <h2 class="fw-bold text-primary">Grant Access to File</h2>
+    </div>
+    <form action="{{ url_for('file-access', id=file_id) }}" method="post">
+      <div class="mb-3">
+        <h5 class="text-dark">Select Users:</h5>
+        {% if users %}
+          {% for user in users %}
+            <div class="form-check">
+              <input
+                  class="form-check-input"
+                  type="checkbox"
+                  id="user-{{ user.id }}"
+                  name="user_ids"
+                  value="{{ user.id }}"
+                  {% if user.has_access %} checked {% endif %}
+              />
+              <label class="form-check-label" for="user-{{ user.id }}">
+                {{ user.username }} (E-mail: {{ user.email }} |
+                ID: {{ user.id }})
+              </label>
+            </div>
+          {% endfor %}
+        {% else %}
+          <p class="text-muted">No users available to assign access.</p>
+        {% endif %}
+      </div>
+      <button type="submit" class="btn btn-success">
+        <i class="bi bi-check-circle"></i> Grant Access
+      </button>
+      <a href="{{ url_for('file-list') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left-circle"></i> Back to Files
+      </a>
+    </form>
+  </div>
+{% endblock %}
